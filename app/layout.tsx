@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Magic Nine Square — 魔术九宫格",
-  description: "A mathematical magic trick. Choose any number. Follow the path. Where will you end up?",
+  description:
+    "魔术九宫格数学小游戏。支持中文/English。默认中文，可随时切换语言。",
 };
 
 export default function RootLayout({
@@ -23,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

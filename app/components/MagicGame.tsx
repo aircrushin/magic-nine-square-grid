@@ -1,14 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-// ─── Grid Layout ───────────────────────────────────────────────────────────────
-//   1 │ 2 │ 3
-//   ──┼───┼──
-//   4 │ 5 │ 6
-//   ──┼───┼──
-//   7 │ 8 │ 9
-// ──────────────────────────────────────────────────────────────────────────────
+// Grid Layout
+//   1 | 2 | 3
+//   --+---+--
+//   4 | 5 | 6
+//   --+---+--
+//   7 | 8 | 9
 
 const ADJ: Record<number, number[]> = {
   1: [2, 4],
@@ -43,24 +42,23 @@ function getValidMoves(pos: number, stepsLeft: number, eliminated: number[]): nu
   return ADJ[pos].filter((next) => canReachValid(next, stepsLeft - 1, eliminated));
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type Phase = 'intro' | 'select' | 'moving' | 'roundEnd' | 'reveal';
+type Phase = "intro" | "select" | "moving" | "roundEnd" | "reveal";
+type Locale = "zh" | "en";
 
 interface GameState {
   phase: Phase;
-  position: number;     // current cell 1-9, 0 = not started
-  startNum: number;     // the number chosen initially
-  round: number;        // 1 | 2 | 3
-  stepsLeft: number;    // steps remaining in current round
-  totalSteps: number;   // total steps for current round (for progress bar)
-  eliminated: number[];      // cumulative eliminated numbers
+  position: number; // current cell 1-9, 0 = not started
+  startNum: number; // the number chosen initially
+  round: number; // 1 | 2 | 3
+  stepsLeft: number; // steps remaining in current round
+  totalSteps: number; // total steps for current round (for progress bar)
+  eliminated: number[]; // cumulative eliminated numbers
   newlyEliminated: number[]; // just eliminated this round (for flash animation)
-  moveHistory: number[];     // path taken (for trail)
+  moveHistory: number[]; // path taken (for trail)
 }
 
 const INIT_STATE: GameState = {
-  phase: 'intro',
+  phase: "intro",
   position: 0,
   startNum: 0,
   round: 0,
@@ -71,7 +69,140 @@ const INIT_STATE: GameState = {
   moveHistory: [],
 };
 
-// ─── Cell Component ───────────────────────────────────────────────────────────
+const COPY = {
+  zh: {
+    langZh: "中文",
+    langEn: "English",
+    systemReady: "── 系统就绪 ──",
+    titleMain: "魔术",
+    titleSub: "九宫",
+    titleThird: "格",
+    divider: "────────────────────",
+    ruleTitle: "// 规则 //",
+    rules: [
+      "选择任意起始格 [1-9]",
+      "第 1 轮：走 N+1 步",
+      "第 2 轮：再走 2 步",
+      "第 3 轮：再走 3 步",
+      "每一轮都会淘汰一些数字",
+    ],
+    ruleQuestion: "你最终会停在哪个数字？",
+    begin: "[ 开始 ]",
+    selectStep: "步骤 01 / 03",
+    selectTitle: "选择你的数字",
+    selectHint: "把任意格子作为起点",
+    tapHint: "▼ 点击任意格子开始 ▼",
+    roundLabel: (round: number) => `第 ${round} 轮 / 3`,
+    stepsLeft: (steps: number) => `剩余 ${steps} 步`,
+    roundOneDesc: (startNum: number, totalSteps: number) =>
+      `起点 [${startNum}] — 总步数: ${totalSteps} (${startNum}+1)`,
+    legendCurrent: "■ 当前位置",
+    legendValidMove: "■ 可走位置",
+    legendPassThrough: "■ 可穿过",
+    legendEliminated: "■ 已淘汰",
+    finalStepWarn: (eliminated: number[]) => `⚠ 最后一步，不能停在 [${eliminated.join(", ")}]`,
+    eliminatedCanPass: (eliminated: number[]) => `已淘汰: [${eliminated.join(", ")}] — 可穿过`,
+    roundComplete: (round: number) => `第 ${round} 轮结束`,
+    eliminationEvent: "淘汰事件",
+    outLabel: "已淘汰",
+    positionLabel: (position: number) => `当前位置: [${position}]`,
+    allEliminatedLabel: (eliminated: number[]) => `全部淘汰: [${eliminated.join(", ")}]`,
+    nextRound1: "下一轮: 不能停在 [2]",
+    nextRound2: "下一轮: 不能停在 [2, 4, 8]",
+    continueToRound: (round: number) => `[ 继续 → 第 ${round} 轮 ]`,
+    calculating: "── 正在计算 ──",
+    youAreOn: "你现在在",
+    startedArrived: (startNum: number) => `起点 [${startNum}] — 终点 [6]`,
+    magicComplete: "魔术完成",
+    hideSecret: "[ 隐藏原理 ]",
+    revealSecret: "[ 查看原理 ]",
+    mathTitle: "// 数学原理",
+    mathLines: [
+      "第 1 轮：从 n 出发走 n+1 步",
+      "奇偶性会把你限制到奇数格",
+      "奇数格为: 1, 3, 5, 7, 9",
+      "从任意奇数格再走 2 步仍是奇数格",
+      "淘汰 2, 4, 8 之后只剩 6",
+      "从任意奇数格走 3 步只能到 6",
+    ],
+    alwaysHere: "所有路径都会到这里。一定如此。",
+    playAgain: "[ 再玩一次 ]",
+    phaseLabels: {
+      intro: "引导",
+      select: "选择",
+      moving: "移动",
+      roundEnd: "轮次结束",
+      reveal: "揭晓",
+    } as Record<Phase, string>,
+    pos: "位置",
+  },
+  en: {
+    langZh: "中文",
+    langEn: "English",
+    systemReady: "── SYSTEM READY ──",
+    titleMain: "MAGIC",
+    titleSub: "NINE",
+    titleThird: "SQUARE",
+    divider: "────────────────────",
+    ruleTitle: "// RULES //",
+    rules: [
+      "PICK ANY STARTING CELL [1-9]",
+      "ROUND 1: WALK N+1 STEPS",
+      "ROUND 2: WALK 2 MORE STEPS",
+      "ROUND 3: WALK 3 MORE STEPS",
+      "NUMBERS GET ELIMINATED EACH ROUND",
+    ],
+    ruleQuestion: "WHERE WILL YOU END UP?",
+    begin: "[ BEGIN ]",
+    selectStep: "STEP 01 / 03",
+    selectTitle: "SELECT YOUR NUMBER",
+    selectHint: "THINK OF ANY CELL AS YOUR START",
+    tapHint: "▼ TAP ANY CELL TO BEGIN ▼",
+    roundLabel: (round: number) => `ROUND ${round} / 3`,
+    stepsLeft: (steps: number) => `${steps} ${steps === 1 ? "STEP" : "STEPS"} LEFT`,
+    roundOneDesc: (startNum: number, totalSteps: number) =>
+      `STARTED AT [${startNum}] — TOTAL STEPS: ${totalSteps} (${startNum}+1)`,
+    legendCurrent: "■ CURRENT",
+    legendValidMove: "■ VALID MOVE",
+    legendPassThrough: "■ PASS-THROUGH",
+    legendEliminated: "■ ELIMINATED",
+    finalStepWarn: (eliminated: number[]) => `⚠ FINAL STEP — CANNOT STOP ON [${eliminated.join(", ")}]`,
+    eliminatedCanPass: (eliminated: number[]) => `ELIMINATED: [${eliminated.join(", ")}] — CAN PASS THROUGH`,
+    roundComplete: (round: number) => `ROUND ${round} COMPLETE`,
+    eliminationEvent: "ELIMINATION EVENT",
+    outLabel: "OUT",
+    positionLabel: (position: number) => `POSITION: [${position}]`,
+    allEliminatedLabel: (eliminated: number[]) => `ALL ELIMINATED: [${eliminated.join(", ")}]`,
+    nextRound1: "NEXT: CANNOT STOP ON [2]",
+    nextRound2: "NEXT: CANNOT STOP ON [2, 4, 8]",
+    continueToRound: (round: number) => `[ CONTINUE → ROUND ${round} ]`,
+    calculating: "── CALCULATING ──",
+    youAreOn: "YOU ARE ON",
+    startedArrived: (startNum: number) => `STARTED AT [${startNum}] — ARRIVED AT [6]`,
+    magicComplete: "MAGIC COMPLETE",
+    hideSecret: "[ HIDE SECRET ]",
+    revealSecret: "[ REVEAL THE SECRET ]",
+    mathTitle: "// THE MATHEMATICS",
+    mathLines: [
+      "ROUND 1: n + (n+1) STEPS FROM CELL n",
+      "PARITY FORCES YOU ONTO AN ODD CELL",
+      "ODD CELLS: 1, 3, 5, 7, 9",
+      "FROM ANY ODD CELL, 2 MORE STEPS → ODD",
+      "ELIMINATING 2, 4, 8 LEAVES ONLY 6",
+      "FROM ANY ODD CELL, 3 STEPS → ONLY 6",
+    ],
+    alwaysHere: "EVERY PATH LEADS HERE. ALWAYS.",
+    playAgain: "[ PLAY AGAIN ]",
+    phaseLabels: {
+      intro: "intro",
+      select: "select",
+      moving: "moving",
+      roundEnd: "roundEnd",
+      reveal: "reveal",
+    } as Record<Phase, string>,
+    pos: "POS",
+  },
+} as const;
 
 interface CellProps {
   num: number;
@@ -99,38 +230,36 @@ function Cell({
   onClick,
 }: CellProps) {
   let base =
-    'relative flex items-center justify-center w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] text-3xl sm:text-4xl font-bold select-none transition-all duration-200 border border-green-900/30';
+    "relative flex items-center justify-center w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] text-3xl sm:text-4xl font-bold select-none transition-all duration-200 border border-green-900/30";
 
   if (isCurrent) {
-    base +=
-      ' bg-green-500/15 text-green-400 border-green-400/80 cursor-default cell-current';
+    base += " bg-green-500/15 text-green-400 border-green-400/80 cursor-default cell-current";
   } else if (isPassThrough) {
     // Can move here as intermediate (pass-through eliminated cell)
     base +=
-      ' bg-orange-500/5 text-orange-400/60 border border-dashed border-orange-500/30 cursor-pointer hover:bg-orange-500/10';
+      " bg-orange-500/5 text-orange-400/60 border border-dashed border-orange-500/30 cursor-pointer hover:bg-orange-500/10";
   } else if (isValidMove && !isLastStep) {
     // Normal valid intermediate move
     base +=
-      ' bg-amber-500/10 text-amber-300 border-amber-400/50 cursor-pointer hover:bg-amber-500/20 hover:border-amber-400 text-glow-amber';
+      " bg-amber-500/10 text-amber-300 border-amber-400/50 cursor-pointer hover:bg-amber-500/20 hover:border-amber-400 text-glow-amber";
   } else if (isValidMove && isLastStep) {
-    // Last step — can stop here
+    // Last step - can stop here
     base +=
-      ' bg-amber-400/15 text-amber-300 border-2 border-amber-400 cursor-pointer hover:bg-amber-400/25 text-glow-amber';
+      " bg-amber-400/15 text-amber-300 border-2 border-amber-400 cursor-pointer hover:bg-amber-400/25 text-glow-amber";
   } else if (isNewlyEliminated) {
-    base += ' text-red-400/40 border-red-900/20 cell-newly-eliminated';
+    base += " text-red-400/40 border-red-900/20 cell-newly-eliminated";
   } else if (isEliminated) {
-    base += ' text-red-500/25 border-red-900/15';
+    base += " text-red-500/25 border-red-900/15";
   } else if (isSelectable) {
     base +=
-      ' text-green-300 cursor-pointer hover:bg-green-500/10 hover:border-green-400/50 hover:text-green-400';
+      " text-green-300 cursor-pointer hover:bg-green-500/10 hover:border-green-400/50 hover:text-green-400";
   } else if (isInHistory) {
-    base += ' text-green-700/60 border-green-900/30';
+    base += " text-green-700/60 border-green-900/30";
   } else {
-    base += ' text-green-400/35';
+    base += " text-green-400/35";
   }
 
-  const canClick =
-    isSelectable || isValidMove || isPassThrough;
+  const canClick = isSelectable || isValidMove || isPassThrough;
 
   return (
     <div
@@ -140,14 +269,12 @@ function Cell({
       onKeyDown={
         canClick
           ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') onClick();
+              if (e.key === "Enter" || e.key === " ") onClick();
             }
           : undefined
       }
     >
-      <span className={isEliminated ? 'line-through decoration-red-500/50 decoration-2' : ''}>
-        {num}
-      </span>
+      <span className={isEliminated ? "line-through decoration-red-500/50 decoration-2" : ""}>{num}</span>
 
       {/* Pulsing border on current cell */}
       {isCurrent && (
@@ -167,21 +294,22 @@ function Cell({
   );
 }
 
-// ─── Main Component ────────────────────────────────────────────────────────────
-
 export default function MagicGame() {
   const [gs, setGs] = useState<GameState>(INIT_STATE);
   const [showSecret, setShowSecret] = useState(false);
+  const [locale, setLocale] = useState<Locale>("zh");
+
+  const t = COPY[locale];
 
   const startGame = () => {
-    setGs({ ...INIT_STATE, phase: 'select' });
+    setGs({ ...INIT_STATE, phase: "select" });
     setShowSecret(false);
   };
 
   const selectStart = (n: number) => {
-    if (gs.phase !== 'select') return;
+    if (gs.phase !== "select") return;
     setGs({
-      phase: 'moving',
+      phase: "moving",
       position: n,
       startNum: n,
       round: 1,
@@ -194,7 +322,7 @@ export default function MagicGame() {
   };
 
   const moveTo = (cell: number) => {
-    if (gs.phase !== 'moving') return;
+    if (gs.phase !== "moving") return;
     const valid = getValidMoves(gs.position, gs.stepsLeft, gs.eliminated);
     if (!valid.includes(cell)) return;
 
@@ -211,7 +339,7 @@ export default function MagicGame() {
         eliminated: newEliminated,
         newlyEliminated: newlyElim,
         moveHistory: newHistory,
-        phase: gs.round === 3 ? 'reveal' : 'roundEnd',
+        phase: gs.round === 3 ? "reveal" : "roundEnd",
       });
     } else {
       setGs({
@@ -225,12 +353,12 @@ export default function MagicGame() {
   };
 
   const nextRound = () => {
-    if (gs.phase !== 'roundEnd') return;
+    if (gs.phase !== "roundEnd") return;
     const round = gs.round + 1;
     const steps = round === 2 ? 2 : 3;
     setGs({
       ...gs,
-      phase: 'moving',
+      phase: "moving",
       round,
       stepsLeft: steps,
       totalSteps: steps,
@@ -239,28 +367,23 @@ export default function MagicGame() {
   };
 
   // Compute valid moves (with lookahead)
-  const validMoves =
-    gs.phase === 'moving'
-      ? getValidMoves(gs.position, gs.stepsLeft, gs.eliminated)
-      : [];
+  const validMoves = gs.phase === "moving" ? getValidMoves(gs.position, gs.stepsLeft, gs.eliminated) : [];
 
   const isLastStep = gs.stepsLeft === 1;
   const stepsCompleted = gs.totalSteps - gs.stepsLeft;
   const progress = gs.totalSteps > 0 ? Math.round((stepsCompleted / gs.totalSteps) * 100) : 0;
 
-  // Grid renderer
   const renderGrid = (interactive: boolean) => (
     <div className="grid-container border border-green-800/40 w-fit">
       <div className="grid grid-cols-3">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => {
-          const isCurrent = gs.position === n && gs.phase !== 'select';
+          const isCurrent = gs.position === n && gs.phase !== "select";
           const isElim = gs.eliminated.includes(n);
           const isNewElim = gs.newlyEliminated.includes(n);
-          const isSelectable = gs.phase === 'select';
+          const isSelectable = gs.phase === "select";
           const isValid = interactive && validMoves.includes(n);
           const isPassThru = interactive && isValid && isElim;
-          const isInHistory =
-            !isCurrent && gs.moveHistory.includes(n) && !isElim;
+          const isInHistory = !isCurrent && gs.moveHistory.includes(n) && !isElim;
 
           return (
             <Cell
@@ -285,56 +408,62 @@ export default function MagicGame() {
     </div>
   );
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-
   return (
     <div className="min-h-screen bg-[#080808] font-mono text-green-400 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Language toggle */}
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-20 flex border border-green-800/50 text-[10px] tracking-[0.2em]">
+        <button
+          type="button"
+          onClick={() => setLocale("zh")}
+          className={`px-3 py-1 transition-colors ${
+            locale === "zh" ? "bg-green-500/20 text-green-300" : "text-green-700 hover:text-green-500"
+          }`}
+        >
+          {t.langZh}
+        </button>
+        <button
+          type="button"
+          onClick={() => setLocale("en")}
+          className={`px-3 py-1 transition-colors ${
+            locale === "en" ? "bg-green-500/20 text-green-300" : "text-green-700 hover:text-green-500"
+          }`}
+        >
+          {t.langEn}
+        </button>
+      </div>
 
       {/* Fixed corner labels */}
-      <div className="fixed top-3 left-4 text-green-900/70 text-[10px] tracking-[0.3em] select-none uppercase">
-        MAGIC.SYS
-      </div>
-      <div className="fixed top-3 right-4 text-green-900/70 text-[10px] tracking-[0.3em] select-none uppercase">
-        v1.0
-      </div>
+      <div className="fixed top-3 left-4 text-green-900/70 text-[10px] tracking-[0.3em] select-none uppercase">MAGIC.SYS</div>
+      <div className="fixed top-3 right-4 text-green-900/70 text-[10px] tracking-[0.3em] select-none uppercase">v1.0</div>
       <div className="fixed bottom-3 left-4 text-green-900/70 text-[10px] tracking-[0.3em] select-none uppercase">
-        {gs.phase}
+        {t.phaseLabels[gs.phase]}
       </div>
       <div className="fixed bottom-3 right-4 text-green-900/70 text-[10px] tracking-[0.3em] select-none uppercase">
-        {gs.position ? `POS:${gs.position}` : 'POS:--'}
+        {gs.position ? `${t.pos}:${gs.position}` : `${t.pos}:--`}
       </div>
 
       {/* Main content card */}
       <div className="relative z-10 flex flex-col items-center gap-5 w-full max-w-[360px]">
-
-        {/* ══════════════════════════════════════════════════════════════════════
-            INTRO PHASE
-        ══════════════════════════════════════════════════════════════════════ */}
-        {gs.phase === 'intro' && (
+        {gs.phase === "intro" && (
           <>
             <div className="text-center w-full">
-              <p className="text-[10px] text-green-800 tracking-[0.5em] mb-4 uppercase">
-                ── SYSTEM READY ──
-              </p>
-              <h1
-                className="text-5xl font-bold tracking-widest leading-[1.15] text-green-400 text-glow-green"
-              >
-                MAGIC<br />
-                <span className="text-4xl tracking-[0.2em]">NINE</span><br />
-                SQUARE
+              <p className="text-[10px] text-green-800 tracking-[0.5em] mb-4 uppercase">{t.systemReady}</p>
+              <h1 className="text-5xl font-bold tracking-widest leading-[1.15] text-green-400 text-glow-green">
+                {t.titleMain}
+                <br />
+                <span className="text-4xl tracking-[0.2em]">{t.titleSub}</span>
+                <br />
+                {t.titleThird}
               </h1>
-              <div className="mt-3 text-[10px] text-green-800 tracking-[0.4em]">
-                ────────────────────
-              </div>
+              <div className="mt-3 text-[10px] text-green-800 tracking-[0.4em]">{t.divider}</div>
             </div>
 
-            {/* Mini demo grid */}
             <div className="grid grid-cols-3 border border-green-900/40 w-fit opacity-60">
-              {[1,2,3,4,5,6,7,8,9].map((n) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
                 <div
                   key={n}
                   className={`w-10 h-10 flex items-center justify-center text-sm border border-green-900/20 ${
-                    n === 6 ? 'text-green-400 bg-green-500/10' : 'text-green-800'
+                    n === 6 ? "text-green-400 bg-green-500/10" : "text-green-800"
                   }`}
                 >
                   {n}
@@ -343,226 +472,143 @@ export default function MagicGame() {
             </div>
 
             <div className="w-full border border-green-900/40 p-4 space-y-1.5 text-sm text-green-700">
-              <p className="text-[10px] text-green-800 tracking-widest mb-2">{'// RULES //'}</p>
-              <p>&gt;&nbsp;PICK ANY STARTING CELL [1-9]</p>
-              <p>&gt;&nbsp;ROUND 1: WALK N+1 STEPS</p>
-              <p>&gt;&nbsp;ROUND 2: WALK 2 MORE STEPS</p>
-              <p>&gt;&nbsp;ROUND 3: WALK 3 MORE STEPS</p>
-              <p>&gt;&nbsp;NUMBERS GET ELIMINATED EACH ROUND</p>
-              <p className="text-green-800 pt-1">&gt;&nbsp;WHERE WILL YOU END UP?</p>
+              <p className="text-[10px] text-green-800 tracking-widest mb-2">{t.ruleTitle}</p>
+              {t.rules.map((rule) => (
+                <p key={rule}>&gt;&nbsp;{rule}</p>
+              ))}
+              <p className="text-green-800 pt-1">&gt;&nbsp;{t.ruleQuestion}</p>
             </div>
 
-            <button
-              onClick={startGame}
-              className="btn-retro w-full py-4 text-lg cursor-blink"
-            >
-              [ BEGIN ]
+            <button onClick={startGame} className="btn-retro w-full py-4 text-lg cursor-blink">
+              {t.begin}
             </button>
           </>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            SELECT PHASE
-        ══════════════════════════════════════════════════════════════════════ */}
-        {gs.phase === 'select' && (
+        {gs.phase === "select" && (
           <>
             <div className="text-center w-full">
-              <p className="text-[10px] text-green-800 tracking-[0.4em] mb-1 uppercase">
-                STEP 01 / 03
-              </p>
-              <h2 className="text-xl tracking-[0.2em] text-green-400">
-                SELECT YOUR NUMBER
-              </h2>
-              <p className="text-xs text-green-700 mt-1">
-                THINK OF ANY CELL AS YOUR START
-              </p>
+              <p className="text-[10px] text-green-800 tracking-[0.4em] mb-1 uppercase">{t.selectStep}</p>
+              <h2 className="text-xl tracking-[0.2em] text-green-400">{t.selectTitle}</h2>
+              <p className="text-xs text-green-700 mt-1">{t.selectHint}</p>
             </div>
 
             {renderGrid(false)}
 
-            <p className="text-[11px] text-green-700 tracking-widest animate-pulse text-center">
-              ▼&nbsp;TAP ANY CELL TO BEGIN&nbsp;▼
-            </p>
+            <p className="text-[11px] text-green-700 tracking-widest animate-pulse text-center">{t.tapHint}</p>
           </>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            MOVING PHASE
-        ══════════════════════════════════════════════════════════════════════ */}
-        {gs.phase === 'moving' && (
+        {gs.phase === "moving" && (
           <>
-            {/* Status header */}
             <div className="w-full space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-[11px] text-green-700 tracking-widest">
-                  ROUND {gs.round} / 3
-                </span>
+                <span className="text-[11px] text-green-700 tracking-widest">{t.roundLabel(gs.round)}</span>
                 <span
                   className={`text-sm font-bold tracking-widest ${
-                    isLastStep ? 'text-amber-300 text-glow-amber' : 'text-amber-500'
+                    isLastStep ? "text-amber-300 text-glow-amber" : "text-amber-500"
                   }`}
                 >
-                  {gs.stepsLeft}&nbsp;{gs.stepsLeft === 1 ? 'STEP' : 'STEPS'}&nbsp;LEFT
+                  {t.stepsLeft(gs.stepsLeft)}
                 </span>
               </div>
 
-              {/* Progress bar */}
               <div className="w-full h-[2px] bg-green-900/40">
-                <div
-                  className="h-[2px] bg-green-500 transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
+                <div className="h-[2px] bg-green-500 transition-all duration-300" style={{ width: `${progress}%` }} />
               </div>
 
-              {/* Round description */}
-              {gs.round === 1 && (
-                <p className="text-[10px] text-green-800">
-                  STARTED AT [{gs.startNum}] — TOTAL STEPS: {gs.totalSteps} ({gs.startNum}+1)
-                </p>
-              )}
+              {gs.round === 1 && <p className="text-[10px] text-green-800">{t.roundOneDesc(gs.startNum, gs.totalSteps)}</p>}
             </div>
 
             {renderGrid(true)}
 
-            {/* Legend + hints */}
             <div className="w-full space-y-2 text-[11px]">
               <div className="flex flex-wrap gap-x-4 gap-y-1">
-                <span className="text-green-400">■ CURRENT</span>
-                <span className="text-amber-300">■ VALID MOVE</span>
+                <span className="text-green-400">{t.legendCurrent}</span>
+                <span className="text-amber-300">{t.legendValidMove}</span>
                 {gs.eliminated.some((e) => validMoves.includes(e)) && (
-                  <span className="text-orange-400/70">■ PASS-THROUGH</span>
+                  <span className="text-orange-400/70">{t.legendPassThrough}</span>
                 )}
-                {gs.eliminated.length > 0 && (
-                  <span className="text-red-500/50">■ ELIMINATED</span>
-                )}
+                {gs.eliminated.length > 0 && <span className="text-red-500/50">{t.legendEliminated}</span>}
               </div>
 
               {isLastStep && gs.eliminated.length > 0 && (
                 <div className="border border-amber-900/40 bg-amber-950/20 px-3 py-2 text-amber-400/80">
-                  ⚠ FINAL STEP — CANNOT STOP ON [{gs.eliminated.join(', ')}]
+                  {t.finalStepWarn(gs.eliminated)}
                 </div>
               )}
 
               {!isLastStep && gs.eliminated.length > 0 && (
-                <p className="text-green-800">
-                  ELIMINATED: [{gs.eliminated.join(', ')}] — CAN PASS THROUGH
-                </p>
+                <p className="text-green-800">{t.eliminatedCanPass(gs.eliminated)}</p>
               )}
             </div>
           </>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            ROUND END PHASE
-        ══════════════════════════════════════════════════════════════════════ */}
-        {gs.phase === 'roundEnd' && (
+        {gs.phase === "roundEnd" && (
           <>
             <div className="w-full text-center border-y border-green-900/30 py-4 space-y-1">
-              <p className="text-[10px] text-green-800 tracking-[0.4em]">
-                ROUND {gs.round} COMPLETE
-              </p>
-              <p className="text-sm text-green-600 tracking-widest">
-                ELIMINATION EVENT
-              </p>
+              <p className="text-[10px] text-green-800 tracking-[0.4em]">{t.roundComplete(gs.round)}</p>
+              <p className="text-sm text-green-600 tracking-widest">{t.eliminationEvent}</p>
               <div className="mt-2">
-                <span
-                  className="text-2xl font-bold text-red-400 text-glow-red"
-                >
-                  [{gs.newlyEliminated.join(', ')}]
-                </span>
-                <span className="text-sm text-red-500/70 ml-2">
-                  {gs.newlyEliminated.length > 1 ? 'ARE' : 'IS'} OUT
-                </span>
+                <span className="text-2xl font-bold text-red-400 text-glow-red">[{gs.newlyEliminated.join(", ")}]</span>
+                <span className="text-sm text-red-500/70 ml-2">{t.outLabel}</span>
               </div>
             </div>
 
             {renderGrid(false)}
 
             <div className="w-full border border-green-900/30 p-3 text-[11px] text-green-800 space-y-1">
-              <p>POSITION: [{gs.position}]</p>
-              <p>ALL ELIMINATED: [{gs.eliminated.join(', ')}]</p>
-              {gs.round === 1 && (
-                <p className="text-amber-800/70 pt-1">
-                  NEXT: CANNOT STOP ON [2]
-                </p>
-              )}
-              {gs.round === 2 && (
-                <p className="text-amber-800/70 pt-1">
-                  NEXT: CANNOT STOP ON [2, 4, 8]
-                </p>
-              )}
+              <p>{t.positionLabel(gs.position)}</p>
+              <p>{t.allEliminatedLabel(gs.eliminated)}</p>
+              {gs.round === 1 && <p className="text-amber-800/70 pt-1">{t.nextRound1}</p>}
+              {gs.round === 2 && <p className="text-amber-800/70 pt-1">{t.nextRound2}</p>}
             </div>
 
-            <button
-              onClick={nextRound}
-              className="btn-retro w-full py-4 text-base"
-            >
-              [ CONTINUE → ROUND {gs.round + 1} ]
+            <button onClick={nextRound} className="btn-retro w-full py-4 text-base">
+              {t.continueToRound(gs.round + 1)}
             </button>
           </>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            REVEAL PHASE
-        ══════════════════════════════════════════════════════════════════════ */}
-        {gs.phase === 'reveal' && (
+        {gs.phase === "reveal" && (
           <>
             <div className="text-center space-y-3 reveal-in w-full">
-              <p className="text-[10px] text-green-800 tracking-[0.5em] animate-pulse">
-                ── CALCULATING ──
-              </p>
+              <p className="text-[10px] text-green-800 tracking-[0.5em] animate-pulse">{t.calculating}</p>
 
-              {/* The big 6 */}
-              <div className="text-[7rem] font-bold leading-none text-green-400 text-glow-reveal">
-                6
-              </div>
+              <div className="text-[7rem] font-bold leading-none text-green-400 text-glow-reveal">6</div>
 
               <div className="space-y-1">
-                <p className="text-lg tracking-[0.25em] text-green-400">
-                  YOU ARE ON
-                </p>
-                <p className="text-xs text-green-700 tracking-widest">
-                  STARTED AT [{gs.startNum}] — ARRIVED AT [6]
-                </p>
+                <p className="text-lg tracking-[0.25em] text-green-400">{t.youAreOn}</p>
+                <p className="text-xs text-green-700 tracking-widest">{t.startedArrived(gs.startNum)}</p>
               </div>
 
               <div className="border-t border-green-900/30 pt-3">
-                <p className="text-base tracking-[0.2em] text-green-500">
-                  MAGIC COMPLETE
-                </p>
+                <p className="text-base tracking-[0.2em] text-green-500">{t.magicComplete}</p>
               </div>
             </div>
 
             {renderGrid(false)}
 
-            {/* Secret explanation toggle */}
             <button
               className="text-[11px] text-green-800 hover:text-green-600 tracking-widest transition-colors underline underline-offset-2 decoration-green-900"
               onClick={() => setShowSecret((s) => !s)}
             >
-              {showSecret ? '[ HIDE SECRET ]' : '[ REVEAL THE SECRET ]'}
+              {showSecret ? t.hideSecret : t.revealSecret}
             </button>
 
             {showSecret && (
               <div className="w-full border border-green-900/40 bg-green-950/20 p-4 text-[11px] text-green-700 space-y-2 reveal-in">
-                <p className="text-green-600 tracking-widest">{'// THE MATHEMATICS'}</p>
-                <p>&gt;&nbsp;ROUND 1: n + (n+1) STEPS FROM CELL n</p>
-                <p>&gt;&nbsp;PARITY FORCES YOU ONTO AN ODD CELL</p>
-                <p>&gt;&nbsp;ODD CELLS: 1, 3, 5, 7, 9</p>
-                <p>&gt;&nbsp;FROM ANY ODD CELL, 2 MORE STEPS → ODD</p>
-                <p>&gt;&nbsp;ELIMINATING 2, 4, 8 LEAVES ONLY 6</p>
-                <p>&gt;&nbsp;FROM ANY ODD CELL, 3 STEPS → ONLY 6</p>
-                <p className="text-green-800 pt-1">
-                  &gt;&nbsp;EVERY PATH LEADS HERE. ALWAYS.
-                </p>
+                <p className="text-green-600 tracking-widest">{t.mathTitle}</p>
+                {t.mathLines.map((line) => (
+                  <p key={line}>&gt;&nbsp;{line}</p>
+                ))}
+                <p className="text-green-800 pt-1">&gt;&nbsp;{t.alwaysHere}</p>
               </div>
             )}
 
-            <button
-              onClick={startGame}
-              className="btn-retro w-full py-4 text-base"
-            >
-              [ PLAY AGAIN ]
+            <button onClick={startGame} className="btn-retro w-full py-4 text-base">
+              {t.playAgain}
             </button>
           </>
         )}
