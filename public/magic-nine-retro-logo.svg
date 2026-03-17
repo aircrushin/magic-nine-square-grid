@@ -1,0 +1,85 @@
+<svg width="960" height="640" viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Magic Nine Square Grid Retro Logo</title>
+  <desc id="desc">Vintage emblem logo with a 3x3 magic square and ribbon text.</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8ecd2"/>
+      <stop offset="100%" stop-color="#ead8b3"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="50%" cy="45%" r="62%">
+      <stop offset="0%" stop-color="#f8d88e"/>
+      <stop offset="100%" stop-color="#da9e43"/>
+    </radialGradient>
+    <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8f2f22"/>
+      <stop offset="50%" stop-color="#b63c2a"/>
+      <stop offset="100%" stop-color="#8f2f22"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#3d1f14" flood-opacity="0.35"/>
+    </filter>
+    <path id="topArc" d="M 230 314 A 250 250 0 0 1 730 314"/>
+    <path id="bottomArc" d="M 730 326 A 250 250 0 0 1 230 326"/>
+  </defs>
+
+  <rect width="960" height="640" fill="url(#paper)"/>
+
+  <g transform="translate(0 14)">
+    <g opacity="0.25" transform="translate(480 308)">
+      <circle r="250" fill="url(#sun)"/>
+      <g stroke="#7d3a22" stroke-width="3">
+        <line x1="0" y1="-250" x2="0" y2="-290"/>
+        <line x1="0" y1="250" x2="0" y2="290"/>
+        <line x1="-250" y1="0" x2="-290" y2="0"/>
+        <line x1="250" y1="0" x2="290" y2="0"/>
+        <line x1="176" y1="-176" x2="204" y2="-204"/>
+        <line x1="-176" y1="176" x2="-204" y2="204"/>
+        <line x1="176" y1="176" x2="204" y2="204"/>
+        <line x1="-176" y1="-176" x2="-204" y2="-204"/>
+      </g>
+    </g>
+
+    <g filter="url(#shadow)">
+      <circle cx="480" cy="320" r="248" fill="#6d321f"/>
+      <circle cx="480" cy="320" r="226" fill="url(#paper)" stroke="#6d321f" stroke-width="10"/>
+    </g>
+
+    <g fill="#5b2617" font-family="Georgia, 'Times New Roman', serif" font-weight="700" letter-spacing="8">
+      <text font-size="56">
+        <textPath href="#topArc" startOffset="50%" text-anchor="middle">MAGIC NINE</textPath>
+      </text>
+      <text font-size="33" letter-spacing="5">
+        <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">SQUARE GRID</textPath>
+      </text>
+    </g>
+
+    <g transform="translate(480 328)">
+      <rect x="-144" y="-144" width="288" height="288" rx="14" fill="#f4e5c2" stroke="#6d321f" stroke-width="12"/>
+      <g stroke="#6d321f" stroke-width="7">
+        <line x1="-48" y1="-144" x2="-48" y2="144"/>
+        <line x1="48" y1="-144" x2="48" y2="144"/>
+        <line x1="-144" y1="-48" x2="144" y2="-48"/>
+        <line x1="-144" y1="48" x2="144" y2="48"/>
+      </g>
+
+      <g font-family="'Trebuchet MS', Verdana, sans-serif" font-size="52" font-weight="700" fill="#5b2617" text-anchor="middle" dominant-baseline="middle">
+        <text x="-96" y="-96">4</text>
+        <text x="0" y="-96">9</text>
+        <text x="96" y="-96">2</text>
+        <text x="-96" y="0">3</text>
+        <text x="0" y="0">5</text>
+        <text x="96" y="0">7</text>
+        <text x="-96" y="96">8</text>
+        <text x="0" y="96">1</text>
+        <text x="96" y="96">6</text>
+      </g>
+    </g>
+
+    <g transform="translate(480 510)" filter="url(#shadow)">
+      <path d="M-248 0 L-206 -26 L-206 26 Z" fill="#742418"/>
+      <path d="M248 0 L206 -26 L206 26 Z" fill="#742418"/>
+      <rect x="-206" y="-34" width="412" height="68" rx="14" fill="url(#ribbon)" stroke="#5f1f15" stroke-width="6"/>
+      <text x="0" y="10" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700" letter-spacing="3" fill="#fff3d8">PUZZLE GAME</text>
+    </g>
+  </g>
+</svg>
