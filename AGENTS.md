@@ -10,13 +10,13 @@ This repository is a Next.js App Router project.
 Keep new UI routes and related components close to their route in `app/`. Put reusable static assets in `public/` and reference them with absolute paths like `/logo.svg`.
 
 ## Build, Test, and Development Commands
-- `npm install`: install dependencies.
-- `npm run dev`: start local dev server (default `http://localhost:3000`).
-- `npm run build`: create production build.
-- `npm run start`: run the production server from the build output.
-- `npm run lint`: run ESLint (Next.js + TypeScript rules).
+- `pnpm install`: install dependencies.
+- `pnpm dev`: start local dev server (default `http://localhost:3000`).
+- `pnpm build`: create production build.
+- `pnpm start`: run the production server from the build output.
+- `pnpm lint`: run ESLint (Next.js + TypeScript rules).
 
-Use `npm run lint && npm run build` before opening a PR to catch type/lint/build regressions.
+Use `pnpm lint && pnpm build` before opening a PR to catch type/lint/build regressions.
 
 ## Coding Style & Naming Conventions
 - Language: TypeScript (`.ts`/`.tsx`) with `strict` mode enabled.
@@ -25,14 +25,14 @@ Use `npm run lint && npm run build` before opening a PR to catch type/lint/build
 - Routes: use lowercase folder names under `app/` (for example `app/settings/page.tsx`).
 - Styling: Tailwind v4 utility classes and theme tokens from `app/globals.css`.
 
-Run `npm run lint` after edits; keep imports minimal and remove dead code.
+Run `pnpm lint` after edits; keep imports minimal and remove dead code.
 
 ## Testing Guidelines
 No automated test framework is configured yet in this snapshot. Minimum validation for contributions:
 
-1. `npm run lint` passes.
-2. `npm run build` passes.
-3. Manual smoke test in `npm run dev` for changed routes/components.
+1. `pnpm lint` passes.
+2. `pnpm build` passes.
+3. Manual smoke test in `pnpm dev` for changed routes/components.
 
 When adding tests, prefer colocated `*.test.ts(x)` files and document new test commands in `package.json`.
 
