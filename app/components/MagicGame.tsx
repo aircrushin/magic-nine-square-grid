@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 const ADJ: Record<number, number[]> = {
@@ -130,6 +131,8 @@ const COPY = {
     rewardClassic: "经典：完成 +8，终局到 6 额外 +4",
     rewardChallenge: "挑战：避开 6 基础 +30，命中 6 奖励 0",
     rewardBonus: "挑战还有时间加成 + 连胜加成",
+    viewRules: "规则介绍",
+    viewRulesDesc: "查看完整玩法与结算说明",
     selectTitle: "选择你的起点",
     selectHint: "任意数字都可以开局",
     tapHint: "点击任意格子开始",
@@ -193,6 +196,8 @@ const COPY = {
     rewardClassic: "Classic: +8 for completion, +4 extra on cell 6",
     rewardChallenge: "Challenge: +30 if not 6, 0 if ending on 6",
     rewardBonus: "Challenge also grants time and streak bonuses",
+    viewRules: "Rules Guide",
+    viewRulesDesc: "Read full gameplay and scoring details",
     selectTitle: "Choose Your Start",
     selectHint: "Any cell can be your opening",
     tapHint: "Tap any cell to begin",
@@ -854,6 +859,11 @@ export default function MagicGame() {
               <p>{t.rewardChallenge}</p>
               <p className="text-amber-300/80">{t.rewardBonus}</p>
             </div>
+
+            <Link href="/rules" className="btn-retro w-full py-3 px-4 text-left block">
+              <p className="text-sm tracking-[0.16em]">{t.viewRules}</p>
+              <p className="text-[11px] text-green-700 mt-1 normal-case tracking-wide">{t.viewRulesDesc}</p>
+            </Link>
           </>
         )}
 
